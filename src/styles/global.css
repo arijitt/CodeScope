@@ -1,0 +1,257 @@
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f3f3f3;
+  --bg-panel: #fafafa;
+  --fg: #1f1f1f;
+  --fg-muted: #6a6a6a;
+  --border: #e0e0e0;
+  --accent: #0066cc;
+  --accent-fg: #ffffff;
+  --danger: #d13438;
+  --success: #107c10;
+  --tab-active: #ffffff;
+  --tab-inactive: #ececec;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --font-mono: 'Consolas', 'Menlo', 'Monaco', monospace;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-ui-sel: var(--font-ui);
+  --font-mono-sel: var(--font-mono);
+}
+
+[data-theme='dark'] {
+  --bg: #1e1e1e;
+  --bg-alt: #252526;
+  --bg-panel: #1e1e1e;
+  --fg: #d4d4d4;
+  --fg-muted: #858585;
+  --border: #2d2d2d;
+  --accent: #0a84ff;
+  --accent-fg: #ffffff;
+  --danger: #f48771;
+  --success: #4ec9b0;
+  --tab-active: #1e1e1e;
+  --tab-inactive: #2d2d2d;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui-sel);
+  font-size: var(--ui-fs, 13px);
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+button:hover:not(:disabled) { background: var(--bg-alt); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+button.primary:hover:not(:disabled) { filter: brightness(1.1); background: var(--accent); }
+
+select, input {
+  font-family: inherit;
+  font-size: inherit;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: var(--sidebar-w, 220px) 5px 1fr 5px var(--right-w, 360px);
+  grid-template-areas:
+    "toolbar toolbar toolbar toolbar toolbar"
+    "sidebar resizer main rightresizer right"
+    "status status status status status";
+  height: 100vh;
+}
+
+.app > .toolbar { grid-area: toolbar; }
+.app > .sidebar { grid-area: sidebar; min-width: 0; min-height: 0; overflow: hidden; }
+.app > .sidebar-resizer { grid-area: resizer; }
+.app > .main { grid-area: main; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+.app > .right-pane-resizer { grid-area: rightresizer; }
+.app > .right-col {
+  grid-area: right;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-left: 0;
+}
+.app > .status { grid-area: status; }
+
+.sidebar-resizer,
+.right-pane-resizer {
+  background: var(--border);
+  cursor: col-resize;
+  position: relative;
+  transition: background 0.15s;
+}
+.sidebar-resizer:hover, .sidebar-resizer:active,
+.right-pane-resizer:hover, .right-pane-resizer:active { background: var(--accent); }
+
+.output-resizer,
+.right-split-resizer {
+  height: 5px;
+  background: var(--border);
+  cursor: row-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.output-resizer:hover, .output-resizer:active,
+.right-split-resizer:hover, .right-split-resizer:active { background: var(--accent); }
+
+/* Bigger Judge0-style toolbar controls */
+.toolbar-control {
+  font-size: 15px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  gap: 10px;
+  height: 44px;
+  line-height: 1;
+}
+.toolbar-control.toolbar-icon {
+  width: 44px;
+  padding: 0;
+  justify-content: center;
+}
+select.toolbar-control {
+  min-width: 170px;
+  padding-right: 12px;
+}
+select.toolbar-font-select {
+  min-width: 130px;
+}
+
+.text-size-group {
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+  background: var(--bg);
+}
+.text-size-group .toolbar-control.toolbar-icon {
+  width: auto;
+  min-width: 38px;
+  height: 36px;
+  padding: 0 6px;
+  border: none;
+  gap: 2px;
+}
+.text-size-value {
+  min-width: 26px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+  font-size: 0.9em;
+  padding: 0 4px;
+}
+
+/* Bump panel headers and dropdown options for readability */
+.right-pane-header,
+.bottom-tab,
+section > div.row > strong {
+  font-size: 1.05em;
+}
+select.toolbar-control,
+select.toolbar-control option {
+  font-size: 1em;
+}
+select.toolbar-font-select option {
+  font-size: 15px;
+}
+
+/* Tabs at the bottom of the Output panel (Output | Input) */
+.bottom-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 8px 14px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-weight: 500;
+}
+.bottom-tab:hover { background: var(--bg); }
+.bottom-tab.active {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+  background: transparent;
+}
+
+/* AI message bubbles */
+.ai-msg {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: var(--bg);
+}
+.ai-msg-user { background: var(--bg-alt); }
+.ai-msg-role {
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fg-muted);
+  margin-bottom: 4px;
+}
+.ai-msg-body {
+  font-size: 1.05em;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+@media (max-width: 1100px) {
+  .app {
+    grid-template-columns: var(--sidebar-w, 220px) 5px 1fr;
+    grid-template-areas:
+      "toolbar toolbar toolbar"
+      "sidebar resizer main"
+      "status status status";
+  }
+  .app > .right-pane-resizer,
+  .app > .right-col { display: none; }
+}
+
+@media (max-width: 720px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "toolbar"
+      "main"
+      "status";
+  }
+  .app > .sidebar,
+  .app > .sidebar-resizer { display: none; }
+}
+
+.scroll { overflow: auto; }
+.row { display: flex; align-items: center; gap: 8px; }
+.spacer { flex: 1; }
+.muted { color: var(--fg-muted); }
+.mono { font-family: var(--font-mono-sel); }
