@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { FileNode, LanguageId, TabState } from '../types';
-import { getLanguage, detectLanguageFromFilename, LANGUAGES } from '../lib/languages';
+import { getLanguage, detectLanguageFromFilename } from '../lib/languages';
 import { uid } from '../lib/uid';
+import type { ExecutorEdit } from '../agent/types';
 
 interface WorkspaceState {
   files: Record<string, FileNode>;
@@ -24,6 +25,13 @@ interface WorkspaceState {
 
   replaceWorkspace: (files: FileNode[], activeId: string | null) => void;
   resetWorkspace: () => void;
+
+  /**
+   * Atomically apply a batch of agent-proposed edits inside a single set()
+   * so tabs/UI/Monaco update once. Returns the list of paths actually
+   * written, suitable for memory-entry construction.
+   */
+  applyAgentEdits: (edits: ExecutorEdit[]) => string[];
 }
 
 function makeStarterFile(): FileNode {
@@ -120,13 +128,12 @@ export const useWorkspace = create<WorkspaceState>()(
         if (f.language === language) return s;
         const newLang = getLanguage(language);
 
-        // Decide whether to replace content with the new HelloWorld starter:
-        //  - file is empty / whitespace, OR
-        //  - file content exactly matches some language's starter code
-        //    (i.e., user hasn't customized it yet)
-        const trimmed = f.content.trim();
-        const matchesAnyStarter = LANGUAGES.some(l => l.starterCode === f.content);
-        const shouldReplace = trimmed.length === 0 || matchesAnyStarter;
+        // An explicit language change from the toolbar is treated as
+        // "give me a fresh starter for this language" — otherwise the
+        // user's previous code stays in place and the editor appears
+        // stuck on the old language with new highlighting. To preserve
+        // existing code instead, the user can rename the file extension.
+        const newContent = newLang.starterCode;
 
         // Rename file extension to match the new language when the path
         // looks like the previous language's default filename (or has no ext).
@@ -151,7 +158,7 @@ export const useWorkspace = create<WorkspaceState>()(
               ...f,
               language,
               path: newPath,
-              content: shouldReplace ? newLang.starterCode : f.content,
+              content: newContent,
               updatedAt: Date.now(),
             },
           },
@@ -201,6 +208,107 @@ export const useWorkspace = create<WorkspaceState>()(
           tabs: [{ fileId: f.id, dirty: false }],
           activeFileId: f.id,
         });
+      },
+
+      applyAgentEdits: (edits) => {
+        const written: string[] = [];
+        set((s) => {
+          const files = { ...s.files };
+          const order = [...s.fileOrder];
+          let tabs = [...s.tabs];
+          let active = s.activeFileId;
+          const stdinByFileId = { ...s.stdinByFileId };
+          const now = Date.now();
+
+          // Helper: find a file by its current path (case-sensitive).
+          const findIdByPath = (p: string): string | null => {
+            for (const id of order) if (files[id]?.path === p) return id;
+            return null;
+          };
+
+          const usedPaths = (excludeId?: string) =>
+            new Set(
+              order
+                .filter((id) => id !== excludeId)
+                .map((id) => files[id]?.path)
+                .filter(Boolean) as string[]
+            );
+
+          for (const edit of edits) {
+            if (edit.error) continue; // never apply failed edits
+
+            if (edit.op === 'create') {
+              const lang = getLanguage(edit.language ?? detectLanguageFromFilename(edit.path));
+              const finalPath = uniquePath(usedPaths(), edit.path);
+              const id = uid();
+              files[id] = {
+                id,
+                path: finalPath,
+                language: lang.id,
+                content: edit.content,
+                createdAt: now,
+                updatedAt: now,
+              };
+              order.push(id);
+              if (!tabs.find((t) => t.fileId === id)) tabs.push({ fileId: id, dirty: false });
+              active = id;
+              written.push(finalPath);
+              continue;
+            }
+
+            const id = findIdByPath(edit.path);
+            if (!id) {
+              // No-op — file disappeared between plan and apply; surface via console.
+              // The modal already showed staleness via diff so the user accepted at their own risk.
+              continue;
+            }
+
+            if (edit.op === 'delete') {
+              const removedPath = files[id].path;
+              delete files[id];
+              delete stdinByFileId[id];
+              const idx = order.indexOf(id);
+              if (idx >= 0) order.splice(idx, 1);
+              tabs = tabs.filter((t) => t.fileId !== id);
+              if (active === id) {
+                active = tabs.length > 0 ? tabs[tabs.length - 1].fileId : (order[0] ?? null);
+              }
+              written.push(removedPath);
+              continue;
+            }
+
+            if (edit.op === 'rename') {
+              const targetRaw = (edit.newPath ?? '').trim();
+              if (!targetRaw) continue;
+              const others = usedPaths(id);
+              const finalPath = uniquePath(others, targetRaw);
+              const lang = detectLanguageFromFilename(finalPath);
+              files[id] = {
+                ...files[id],
+                path: finalPath,
+                language: lang,
+                // Apply content change too if the executor changed it during the rename.
+                content: edit.content !== '' ? edit.content : files[id].content,
+                updatedAt: now,
+              };
+              written.push(finalPath);
+              continue;
+            }
+
+            // edit
+            files[id] = { ...files[id], content: edit.content, updatedAt: now };
+            written.push(files[id].path);
+          }
+
+          return {
+            files,
+            fileOrder: order,
+            tabs,
+            activeFileId: active,
+            stdinByFileId,
+          };
+        });
+        return written;
       },
     }),
     {

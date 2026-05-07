@@ -95,6 +95,60 @@ Press **Enter** to send, **Shift+Enter** for a newline.
 
 > ⚠️ **OpenAI key warning** — Vite bundles `VITE_`-prefixed variables into the client. Anyone who loads the page can read your key. Use only for local / personal development. For production, proxy AI calls through a backend you control.
 
+## Coding agent (litecode-style)
+
+The AI Assistance pane has two tabs: **Chat** (single-file Q&A) and **Agent**. The Agent tab turns
+the IDE into a multi-file coding harness modeled on
+[razvanneculai/litecode](https://github.com/razvanneculai/litecode).
+
+**How it works**
+
+1. **Planner** — one LLM call. Given your plain-English request + a context map of the
+   workspace + short-term memory, it returns a JSON list of tasks
+   (`{path, op, hint, deps}`).
+2. **Orchestrator** — pure TS. Topologically sorts the tasks, groups them into parallel waves,
+   and calls the executor for each task. Concurrency cap (default 6, override with
+   `VITE_AGENT_MAX_CONCURRENCY`).
+3. **Executor** — one LLM call per file. Receives just that file's contents (or a section of
+   it via the file's analysis index when the file is too large for the budget) and returns
+   the new full content.
+4. **Diff preview** — every proposed edit is shown in a modal with red/green hunks. You pick
+   which to **Apply** or **Reject** before anything touches the workspace.
+5. **Memory** — after at least one edit is applied, a one-sentence synthesis of what changed is
+   pushed into a ring buffer of the last 4 actions (persisted to `localStorage` under
+   `web-ide.agent.memory.v1`). The next planner call sees this memory, so phrases like
+   "undo the last change" or "also add a goodbye() function" work as expected.
+
+**Token budget**
+
+Every LLM call is capped at 8192 tokens, enforced in code before each call:
+
+```
+Total context window:  8192
+System prompt:        ~1000
+Reserved reply:        2000
+Memory (≤ 4 entries): ~360
+Available for code:  ~4800
+```
+
+Priority drops when the prompt is over budget: folder context first, then memory, then the
+executor falls back to loading just a section of the file via its line-range analysis index.
+This matches litecode's `canFit` logic.
+
+**Providers**
+
+Same as Chat — Azure AI Foundry (preferred when `az login`'d) → OpenAI key fallback. Both
+planner and executor calls reuse the existing provider router.
+
+**Tips**
+
+- The agent shines on cross-file refactors: "rename `validateToken` to `verifyToken` everywhere",
+  "extract `formatDate` from `utils.ts` into a new `dateFormat.ts`", "add JSDoc to every
+  exported function in `src/lib/`".
+- Use **Ctrl+Enter** in the Agent input to start a run.
+- Click **Cancel** to abort an in-flight planner or executor call (uses `AbortController`).
+- Clear memory from the chip at the top of the Agent tab when you want a clean slate.
+
 ## Layout
 
 ```

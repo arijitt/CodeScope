@@ -255,3 +255,155 @@ select.toolbar-font-select option {
 .spacer { flex: 1; }
 .muted { color: var(--fg-muted); }
 .mono { font-family: var(--font-mono-sel); }
+
+/* ---------- Phase 5: coding agent ---------- */
+
+/* Spinner used by Loader2 icons in AI panels */
+@keyframes ai-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin { animation: ai-spin 0.9s linear infinite; }
+
+/* Tab strip inside AI Assistance panel */
+.ai-tabbar { padding: 0 4px; gap: 0; }
+.ai-tabbar .bottom-tab { padding: 6px 12px; font-size: 0.95em; }
+
+/* Live indicator on the Agent tab while a run is in progress */
+.agent-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 6px;
+  background: var(--accent);
+  animation: ai-pulse 1.2s ease-in-out infinite;
+}
+@keyframes ai-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.85); }
+  50%      { opacity: 1;   transform: scale(1); }
+}
+.agent-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-size: 0.75em;
+  line-height: 1.6;
+}
+
+.agent-log {
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Diff preview modal — overlays the whole IDE */
+.diff-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+.diff-modal {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  width: min(1100px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.diff-modal-header,
+.diff-modal-footer {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-alt);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.diff-modal-footer {
+  border-top: 1px solid var(--border);
+  border-bottom: none;
+}
+.diff-modal-body {
+  flex: 1;
+  min-height: 0;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.diff-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel);
+}
+.diff-card-header {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-alt);
+  font-size: 0.95em;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+.diff-op-badge {
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.diff-op-edit   { color: var(--accent); border-color: var(--accent); }
+.diff-op-create { color: var(--success); border-color: var(--success); }
+.diff-op-delete { color: var(--danger); border-color: var(--danger); }
+.diff-op-rename { color: var(--fg-muted); }
+
+.diff-pre {
+  margin: 0;
+  padding: 6px 0;
+  font-size: 0.88em;
+  line-height: 1.4;
+  max-height: 360px;
+  overflow: auto;
+  background: var(--bg);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+.diff-hunk-header {
+  padding: 2px 10px;
+  color: var(--fg-muted);
+  background: var(--bg-alt);
+  font-size: 0.85em;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.diff-line {
+  display: flex;
+  padding: 0 10px;
+  white-space: pre;
+}
+.diff-gutter {
+  display: inline-block;
+  width: 14px;
+  text-align: center;
+  color: var(--fg-muted);
+  user-select: none;
+}
+.diff-text { flex: 1; word-break: break-all; }
+.diff-add { background: rgba(16, 124, 16, 0.10); }
+.diff-del { background: rgba(209, 52, 56, 0.10); }
+[data-theme='dark'] .diff-add { background: rgba(78, 201, 176, 0.12); }
+[data-theme='dark'] .diff-del { background: rgba(244, 135, 113, 0.14); }
+.diff-add .diff-gutter { color: var(--success); }
+.diff-del .diff-gutter { color: var(--danger); }

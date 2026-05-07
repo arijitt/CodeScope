@@ -42,6 +42,37 @@ export function selectProvider(): AIProvider {
   return 'none';
 }
 
+/**
+ * Shared provider router used by both the chat AI and the Phase 5 coding
+ * agent. Wraps Foundry / OpenAI dispatch so callers don't have to repeat
+ * the bearer/proxy logic. Throws on missing provider so callers can surface
+ * the standard "sign in / set key" banner.
+ */
+export async function callProvider(opts: {
+  instructions: string;
+  messages: ChatMessage[];
+  signal?: AbortSignal;
+}): Promise<string> {
+  const provider = selectProvider();
+  if (provider === 'none') {
+    throw new Error('No AI provider available. Sign in to Azure (`az login`) or set VITE_OPENAI_API_KEY in .env and restart the dev server.');
+  }
+  if (provider === 'foundry') {
+    return foundryChat({
+      instructions: opts.instructions,
+      messages: opts.messages,
+      signal: opts.signal,
+    });
+  }
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error('OpenAI API key disappeared.');
+  return openaiChat({
+    apiKey,
+    messages: [{ role: 'system', content: opts.instructions }, ...opts.messages],
+    signal: opts.signal,
+  });
+}
+
 export const useAI = create<AIState>()(
   persist(
     (set, get) => ({
@@ -67,20 +98,10 @@ export const useAI = create<AIState>()(
         const trimmedHistory = history.slice(-MAX_HISTORY);
 
         try {
-          let reply: string;
-          if (provider === 'foundry') {
-            reply = await foundryChat({
-              instructions: systemContent,
-              messages: trimmedHistory,
-            });
-          } else {
-            const apiKey = getApiKey();
-            if (!apiKey) throw new Error('OpenAI API key disappeared.');
-            reply = await openaiChat({
-              apiKey,
-              messages: [{ role: 'system', content: systemContent }, ...trimmedHistory],
-            });
-          }
+          const reply = await callProvider({
+            instructions: systemContent,
+            messages: trimmedHistory,
+          });
           const assistantMsg: ChatMessage = { role: 'assistant', content: reply };
           const next = [...get().messages, assistantMsg].slice(-MAX_HISTORY);
           set({ messages: next, isSending: false });
