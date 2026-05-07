@@ -407,3 +407,206 @@ select.toolbar-font-select option {
 [data-theme='dark'] .diff-del { background: rgba(244, 135, 113, 0.14); }
 .diff-add .diff-gutter { color: var(--success); }
 .diff-del .diff-gutter { color: var(--danger); }
+
+/* ─────────────────── Phase 6 — Run Visualization ─────────────────── */
+
+.viz-toolbar {
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-alt);
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.9em;
+}
+.viz-status {
+  padding: 2px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  gap: 8px;
+  font-size: 0.78em;
+  min-height: 22px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.viz-step-counter {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85em;
+}
+.viz-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--fg);
+  border-radius: 4px;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+.viz-btn:hover:not(:disabled) { background: var(--bg-alt); }
+.viz-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.viz-btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.viz-btn.primary:hover:not(:disabled) { filter: brightness(1.1); }
+.viz-btn.danger { color: var(--danger); border-color: var(--danger); }
+.viz-btn.danger:hover { background: var(--danger); color: white; }
+.viz-select {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--fg);
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.viz-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: 0.78em;
+  letter-spacing: 0.02em;
+}
+.viz-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--danger);
+  font-size: 0.8em;
+}
+.viz-canvas {
+  overflow: hidden;
+  background: var(--bg);
+}
+.viz-empty-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 20px;
+  color: var(--fg-muted);
+}
+.viz-empty-state.viz-error { color: var(--danger); }
+.viz-note {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 2px 10px;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 0.78em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.viz-scrubber {
+  padding: 4px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.viz-scrubber input[type='range'] {
+  width: 100%;
+  cursor: pointer;
+}
+
+/* SVG canvas + node-state colors. Light theme defaults. */
+.viz-svg {
+  display: block;
+  color: var(--fg);
+  font-family: var(--font-ui-sel, inherit);
+}
+.viz-svg text { fill: var(--fg); pointer-events: none; }
+.viz-edge { color: var(--fg-muted); opacity: 0.55; }
+.viz-edge-hi { color: var(--accent); }
+
+/* Node-state classes set both fill (via CSS) and currentColor (for stroke). */
+.viz-state-idle     { color: var(--fg-muted); }
+.viz-state-idle     .viz-node-circle,
+.viz-state-idle.viz-bar,
+.viz-state-idle.viz-cell,
+.viz-state-idle.viz-sq-box,
+.viz-state-idle .viz-rec-box,
+.viz-state-idle .viz-ll-box { fill: var(--bg-alt); }
+
+.viz-state-frontier { color: #b58900; }                  /* amber */
+.viz-state-frontier .viz-node-circle,
+.viz-state-frontier.viz-bar,
+.viz-state-frontier.viz-cell,
+.viz-state-frontier.viz-sq-box,
+.viz-state-frontier .viz-rec-box,
+.viz-state-frontier .viz-ll-box { fill: rgba(181, 137, 0, 0.22); }
+
+.viz-state-visiting { color: #0066cc; }                  /* blue */
+.viz-state-visiting .viz-node-circle,
+.viz-state-visiting.viz-bar,
+.viz-state-visiting.viz-cell,
+.viz-state-visiting.viz-sq-box,
+.viz-state-visiting .viz-rec-box,
+.viz-state-visiting .viz-ll-box { fill: rgba(0, 102, 204, 0.28); }
+
+.viz-state-visited  { color: #6f42c1; }                  /* violet */
+.viz-state-visited  .viz-node-circle,
+.viz-state-visited.viz-bar,
+.viz-state-visited.viz-cell,
+.viz-state-visited.viz-sq-box,
+.viz-state-visited  .viz-rec-box,
+.viz-state-visited  .viz-ll-box { fill: rgba(111, 66, 193, 0.20); }
+
+.viz-state-done     { color: #107c10; }                  /* green */
+.viz-state-done     .viz-node-circle,
+.viz-state-done.viz-bar,
+.viz-state-done.viz-cell,
+.viz-state-done.viz-sq-box,
+.viz-state-done     .viz-rec-box,
+.viz-state-done     .viz-ll-box { fill: rgba(16, 124, 16, 0.22); }
+
+.viz-state-pivot.viz-bar { fill: rgba(209, 52, 56, 0.30); color: var(--danger); }
+
+/* Brighter palette in dark mode. */
+[data-theme='dark'] .viz-state-frontier { color: #f1b54a; }
+[data-theme='dark'] .viz-state-frontier .viz-node-circle,
+[data-theme='dark'] .viz-state-frontier.viz-bar,
+[data-theme='dark'] .viz-state-frontier.viz-cell,
+[data-theme='dark'] .viz-state-frontier.viz-sq-box,
+[data-theme='dark'] .viz-state-frontier .viz-rec-box,
+[data-theme='dark'] .viz-state-frontier .viz-ll-box { fill: rgba(241, 181, 74, 0.20); }
+[data-theme='dark'] .viz-state-visiting { color: #4ec9b0; }
+[data-theme='dark'] .viz-state-visiting .viz-node-circle,
+[data-theme='dark'] .viz-state-visiting.viz-bar,
+[data-theme='dark'] .viz-state-visiting.viz-cell,
+[data-theme='dark'] .viz-state-visiting.viz-sq-box,
+[data-theme='dark'] .viz-state-visiting .viz-rec-box,
+[data-theme='dark'] .viz-state-visiting .viz-ll-box { fill: rgba(78, 201, 176, 0.22); }
+[data-theme='dark'] .viz-state-visited { color: #c586c0; }
+[data-theme='dark'] .viz-state-visited .viz-node-circle,
+[data-theme='dark'] .viz-state-visited.viz-bar,
+[data-theme='dark'] .viz-state-visited.viz-cell,
+[data-theme='dark'] .viz-state-visited.viz-sq-box,
+[data-theme='dark'] .viz-state-visited .viz-rec-box,
+[data-theme='dark'] .viz-state-visited .viz-ll-box { fill: rgba(197, 134, 192, 0.22); }
+[data-theme='dark'] .viz-state-done { color: #6a9955; }
+[data-theme='dark'] .viz-state-done .viz-node-circle,
+[data-theme='dark'] .viz-state-done.viz-bar,
+[data-theme='dark'] .viz-state-done.viz-cell,
+[data-theme='dark'] .viz-state-done.viz-sq-box,
+[data-theme='dark'] .viz-state-done .viz-rec-box,
+[data-theme='dark'] .viz-state-done .viz-ll-box { fill: rgba(106, 153, 85, 0.22); }
+
+/* Renderer-specific tweaks. */
+.viz-node-label { fill: var(--fg); font-weight: 600; }
+.viz-node-distance { fill: var(--fg-muted); }
+.viz-cell-value { fill: var(--fg); }
+.viz-cell-wall { fill: var(--fg); opacity: 0.85; }
+.viz-marker-start { fill: var(--accent); }
+.viz-marker-goal { fill: var(--danger); }
+.viz-grid-path { color: var(--accent); opacity: 0.85; }
+.viz-range-overlay { fill: var(--accent); opacity: 0.08; }
+.viz-bar-label { fill: var(--fg-muted); }
+.viz-ll-pointer { fill: var(--accent); font-weight: 600; }
+.viz-ll-id { fill: var(--fg-muted); }
+.viz-ll-value { fill: var(--fg); font-weight: 600; }
+.viz-rec-return { fill: currentColor; font-weight: 600; }
+.viz-sq-end-label { fill: var(--fg-muted); }
+.viz-sq-label { fill: var(--fg); font-weight: 600; }
+.viz-empty { fill: var(--fg-muted); }

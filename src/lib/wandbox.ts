@@ -49,6 +49,7 @@ export interface ExecuteOptions {
   language: LanguageMeta;
   code: string;
   stdin?: string;
+  signal?: AbortSignal;
 }
 
 export async function execute(opts: ExecuteOptions): Promise<RunResult> {
@@ -72,6 +73,7 @@ export async function execute(opts: ExecuteOptions): Promise<RunResult> {
       'runtime-option-raw': '',
       save: false,
     }),
+    signal: opts.signal,
   });
   if (res.status === 429) {
     throw new Error('Rate limited by Wandbox. Please wait a moment and try again.');

@@ -149,6 +149,43 @@ planner and executor calls reuse the existing provider router.
 - Click **Cancel** to abort an in-flight planner or executor call (uses `AbortController`).
 - Clear memory from the chip at the top of the Agent tab when you want a clean slate.
 
+## Run visualization
+
+The right-side **Run Visualization** pane animates how the active file's algorithm
+executes step-by-step, on a sample input the IDE generates for you.
+
+How it works:
+
+1. Click **Visualize** in the Run Visualization pane header.
+2. The IDE asks the AI provider (Foundry → OpenAI fallback) to:
+   - **Classify** the algorithm into one of seven categories (graph, tree,
+     array sort, grid, linked list, recursion call tree, stack/queue),
+   - **Generate** a small sample input,
+   - **Rewrite** the source so each interesting step prints a probe line
+     of the form `__VIZ__:{json}`.
+3. Wandbox runs the instrumented code; the runner parses the probe lines
+   into a typed event stream.
+4. If instrumentation fails (compile error, no probes emitted, etc.) the
+   IDE falls back to an **LLM-simulated trace** and shows a yellow
+   **Simulated** badge so you know it isn't real execution.
+5. The animator replays the events into one of seven hand-rolled SVG
+   renderers; transport controls (▶ ⏸ ⏮ ⏭ Reset, speed selector, scrubber)
+   let you step through frame-by-frame.
+
+Manual override:
+
+- The **Auto-detect** dropdown next to the Visualize button lets you force
+  a specific category (e.g., choose "Graph" if the planner picked "Tree").
+  Clicking Visualize again re-plans with that category locked in.
+
+Limits:
+
+- Hard cap of 500 step events by default — set `VITE_VIZ_MAX_STEPS` in
+  `.env.local` to raise it (clamped to [1, 5000]). Truncated traces show
+  a "truncated" warning in the status row.
+- All renderers are hand-rolled SVG; no extra runtime dependency.
+- The Visualize button is disabled until you have an open file.
+
 ## Layout
 
 ```
