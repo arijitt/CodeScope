@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Play, Sun, Moon, Share2, Download, Loader2, Code2, Type } from 'lucide-react';
+import { Play, Sun, Moon, Share2, Download, Loader2, Code2, Type, RotateCcw } from 'lucide-react';
 import { useWorkspace } from '../../store/workspaceStore';
 import { useSettings, EDITOR_FONTS } from '../../store/settingsStore';
 import { useRun } from '../../store/runStore';
+import { useViz } from '../../store/vizStore';
+import { useAI } from '../../store/aiStore';
+import { useAgent } from '../../store/agentStore';
 import { LANGUAGES, getLanguage } from '../../lib/languages';
 import { execute } from '../../lib/wandbox';
 import { downloadFile, downloadWorkspaceZip } from '../../lib/download';
@@ -14,6 +17,8 @@ export function Toolbar() {
   const activeId = useWorkspace(s => s.activeFileId);
   const file = useWorkspace(s => (activeId ? s.files[activeId] : null));
   const setLanguage = useWorkspace(s => s.setLanguage);
+  const updateContent = useWorkspace(s => s.updateContent);
+  const setStdin = useWorkspace(s => s.setStdin);
   const filesMap = useWorkspace(s => s.files);
   const fileOrder = useWorkspace(s => s.fileOrder);
 
@@ -79,6 +84,22 @@ export function Toolbar() {
     }
   };
 
+  const onResetCode = () => {
+    if (!file) return;
+    const ok = window.confirm(
+      'Reset this file to the starter and clear the visualization, chat, and agent state? This cannot be undone.'
+    );
+    if (!ok) return;
+    const langMeta = getLanguage(file.language);
+    updateContent(file.id, langMeta.starterCode);
+    setStdin(file.id, '');
+    useViz.getState().resetAll();
+    useAI.getState().clear();
+    useAgent.getState().reset();
+    setResult(null);
+    setError(null);
+  };
+
   return (
     <header
       className="toolbar row"
@@ -114,6 +135,15 @@ export function Toolbar() {
       <span className="spacer" />
 
       {shareNotice && <span className="muted">{shareNotice}</span>}
+
+      <button
+        className="danger toolbar-control"
+        onClick={onResetCode}
+        disabled={!file}
+        title="Reset code to the language's starter and clear the visualization, chat, and agent panels"
+      >
+        <RotateCcw size={20} /> Reset Code
+      </button>
 
       <select
         className="toolbar-control toolbar-font-select"

@@ -68,6 +68,12 @@ button.primary {
   border-color: var(--accent);
 }
 button.primary:hover:not(:disabled) { filter: brightness(1.1); background: var(--accent); }
+button.danger {
+  background: var(--danger);
+  color: #ffffff;
+  border-color: var(--danger);
+}
+button.danger:hover:not(:disabled) { filter: brightness(1.1); background: var(--danger); }
 
 select, input {
   font-family: inherit;
