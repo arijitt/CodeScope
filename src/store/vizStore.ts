@@ -12,6 +12,11 @@ import { djb2 } from '../lib/hash';
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 16;
 
+/** Discrete zoom levels for the Run Visualization canvas. */
+export const VIZ_ZOOM_LEVELS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4] as const;
+const MIN_ZOOM = VIZ_ZOOM_LEVELS[0];
+const MAX_ZOOM = VIZ_ZOOM_LEVELS[VIZ_ZOOM_LEVELS.length - 1];
+
 interface VizState {
   status: VizStatus;
   plan: VizPlan | null;
@@ -22,6 +27,8 @@ interface VizState {
   speed: number;
   /** When non-null, overrides the planner's category choice. */
   forceCategory: VizCategory | null;
+  /** Visualization canvas zoom (1 = 100%). */
+  zoom: number;
   error: string | null;
   cleanStdout: string;
   errorOutput: string;
@@ -46,6 +53,14 @@ interface VizState {
   // Actions
   setForceCategory(c: VizCategory | null): void;
   setSpeed(s: number): void;
+  /** Set zoom to an absolute value (clamped to [MIN_ZOOM, MAX_ZOOM]). */
+  setZoom(z: number): void;
+  /** Snap to the next zoom level above the current zoom. */
+  zoomIn(): void;
+  /** Snap to the next zoom level below the current zoom. */
+  zoomOut(): void;
+  /** Restore zoom to 100%. */
+  resetZoom(): void;
   startVisualize(): Promise<void>;
   cancel(): void;
   play(): void;
@@ -83,6 +98,7 @@ export const useViz = create<VizState>((set, get) => ({
   currentStep: 0,
   speed: 2,
   forceCategory: null,
+  zoom: 1,
   error: null,
   cleanStdout: '',
   errorOutput: '',
@@ -105,6 +121,29 @@ export const useViz = create<VizState>((set, get) => ({
       startTimer(set, get);
     }
   },
+
+  setZoom: (z) => {
+    const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+    set({ zoom });
+  },
+
+  zoomIn: () => {
+    const cur = get().zoom;
+    const next = VIZ_ZOOM_LEVELS.find((lvl) => lvl > cur + 1e-6);
+    if (next !== undefined) set({ zoom: next });
+  },
+
+  zoomOut: () => {
+    const cur = get().zoom;
+    let prev: number | undefined;
+    for (const lvl of VIZ_ZOOM_LEVELS) {
+      if (lvl < cur - 1e-6) prev = lvl;
+      else break;
+    }
+    if (prev !== undefined) set({ zoom: prev });
+  },
+
+  resetZoom: () => set({ zoom: 1 }),
 
   startVisualize: async () => {
     const ws = useWorkspace.getState();
@@ -171,6 +210,7 @@ export const useViz = create<VizState>((set, get) => ({
         plan: result.plan,
         trace: result.trace,
         currentStep: 0,
+        zoom: 1,
         cleanStdout: result.cleanStdout,
         errorOutput: result.errorOutput,
         _lineIndex: buildLineIndex(result.trace),
@@ -253,6 +293,7 @@ export const useViz = create<VizState>((set, get) => ({
       plan: null,
       trace: null,
       currentStep: 0,
+      zoom: 1,
       error: null,
       cleanStdout: '',
       errorOutput: '',

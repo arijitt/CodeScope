@@ -435,13 +435,16 @@ select.toolbar-font-select option {
 .viz-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 18px;
+  height: 44px;
   border: 1px solid var(--border);
   background: var(--bg-panel);
   color: var(--fg);
-  border-radius: 4px;
-  font-size: 0.85em;
+  border-radius: 6px;
+  font-size: 15px;
+  line-height: 1;
   cursor: pointer;
 }
 .viz-btn:hover:not(:disabled) { background: var(--bg-alt); }
@@ -450,13 +453,21 @@ select.toolbar-font-select option {
 .viz-btn.primary:hover:not(:disabled) { filter: brightness(1.1); }
 .viz-btn.danger { color: var(--danger); border-color: var(--danger); }
 .viz-btn.danger:hover { background: var(--danger); color: white; }
+/* Icon-only transport buttons stay square for a consistent feel. */
+.viz-btn.viz-btn-icon {
+  width: 44px;
+  padding: 0;
+  gap: 0;
+}
 .viz-select {
-  padding: 2px 6px;
+  padding: 10px 12px 10px 18px;
+  height: 44px;
   border: 1px solid var(--border);
   background: var(--bg-panel);
   color: var(--fg);
-  border-radius: 4px;
-  font-size: 0.85em;
+  border-radius: 6px;
+  font-size: 15px;
+  line-height: 1;
 }
 .viz-badge {
   display: inline-block;
@@ -477,6 +488,21 @@ select.toolbar-font-select option {
 .viz-canvas {
   overflow: hidden;
   background: var(--bg);
+}
+.viz-scale-outer {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  display: flex;
+}
+.viz-scale-inner {
+  flex-shrink: 0;
+  position: relative;
+}
+.viz-zoom-pct {
+  min-width: 64px;
+  font-variant-numeric: tabular-nums;
+  justify-content: center;
 }
 .viz-empty-state {
   position: absolute;
