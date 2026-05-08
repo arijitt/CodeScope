@@ -320,3 +320,8 @@ export const useWorkspace = create<WorkspaceState>()(
     }
   )
 );
+
+// Dev-only: expose the store on window for smoke tests / debugging.
+if (typeof window !== 'undefined' && import.meta.env?.DEV) {
+  (window as unknown as { __workspace?: typeof useWorkspace }).__workspace = useWorkspace;
+}

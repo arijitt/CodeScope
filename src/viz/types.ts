@@ -158,14 +158,22 @@ export type StackQueueEvent =
   | { t: 'peek'; struct: 'stack' | 'queue' }
   | { t: 'note'; text: string };
 
-export type VizEvent =
+export type VizEvent = (
   | GraphEvent
   | TreeEvent
   | ArraySortEvent
   | GridEvent
   | LinkedListEvent
   | RecursionEvent
-  | StackQueueEvent;
+  | StackQueueEvent
+) & {
+  /**
+   * Phase 7 — 1-based line number in the user's ORIGINAL source where this
+   * event logically belongs. Optional for backward compatibility; without it
+   * the cursor↔step binding silently no-ops for that event.
+   */
+  line?: number;
+};
 
 // ─────────────────────────── Plan & trace ──────────────────────────────
 

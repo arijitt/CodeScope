@@ -149,6 +149,21 @@ Rules for the instrumented code:
   - The program MUST still compile and run on Wandbox; if needed, hardcode the sample
     input near the top so no stdin is required (return "" for "stdin").
 
+## LINE TAGS (REQUIRED for cursor binding)
+Every step-op JSON object MUST include a \`"line"\` field whose value is the
+**1-based line number in the user's ORIGINAL source code** that this event
+logically corresponds to — NOT the line number in your rewritten instrumented
+code, and NOT the line of the probe statement you inserted.
+
+  - Pick the line that contains the algorithmic step the event represents
+    (the line the user would expect a debugger to be paused on for this step).
+  - If a probe was added by infrastructure code with no clear original-line
+    correspondence, pick the most semantically-relevant nearby line in the
+    original source (e.g., the function declaration line for the input echo).
+  - Lines are 1-based. The first line of the user's source is line 1.
+  - The "input" echo event SHOULD also include a "line" — use the line of
+    the function/class definition that owns the algorithm.
+
 ## Category vocabularies
 ${vocabBlock}
 
@@ -181,6 +196,9 @@ Rules:
   - JSON must parse with JSON.parse — no comments, no trailing commas.
   - Be faithful to the code's behavior on the given input. If the code has bugs,
     show what the code WOULD do, not what it should do.
+  - Every event MUST include a \`"line"\` field — the 1-based line in the user's
+    ORIGINAL source where the algorithmic step occurs. This is what drives the
+    editor cursor ↔ visualization binding.
 
 ## Vocabulary for "${category}"
 ${formatVocab(category)}`;

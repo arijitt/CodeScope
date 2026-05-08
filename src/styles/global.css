@@ -610,3 +610,50 @@ select.toolbar-font-select option {
 .viz-sq-end-label { fill: var(--fg-muted); }
 .viz-sq-label { fill: var(--fg); font-weight: 600; }
 .viz-empty { fill: var(--fg-muted); }
+
+/* ─────────────────── Phase 7 — Cursor binding ─────────────────── */
+
+/* Executing line — subtle accent-tinted background. Wraps the whole line. */
+.viz-exec-line {
+  background: rgba(0, 102, 204, 0.10);
+  border-left: 2px solid var(--accent);
+}
+[data-theme='dark'] .viz-exec-line {
+  background: rgba(78, 201, 176, 0.14);
+  border-left-color: #4ec9b0;
+}
+
+/* Gutter glyph — small triangle pointer in the glyph margin. */
+.viz-exec-glyph {
+  background: var(--accent);
+  width: 4px !important;
+  margin-left: 4px;
+  border-radius: 2px;
+}
+[data-theme='dark'] .viz-exec-glyph { background: #4ec9b0; }
+
+/* "Follow code" toggle — active state highlighting. */
+.viz-btn.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.viz-btn.active:hover:not(:disabled) { filter: brightness(1.1); }
+
+/* Stale-source banner — yellow strip below toolbar with re-visualize action. */
+.viz-stale-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: rgba(241, 181, 74, 0.18);
+  border-bottom: 1px solid rgba(241, 181, 74, 0.55);
+  color: #8a5a00;
+  font-size: 0.82em;
+}
+[data-theme='dark'] .viz-stale-banner {
+  background: rgba(241, 181, 74, 0.12);
+  border-bottom-color: rgba(241, 181, 74, 0.40);
+  color: #f1b54a;
+}
+.viz-stale-banner > span { flex: 1; }

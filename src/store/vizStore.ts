@@ -1,11 +1,13 @@
 // Phase 6 — Visualization store.
 // State machine + transport controls for the Run Viz pane.
+// Phase 7 — Adds bidirectional cursor↔step binding via per-line index.
 
 import { create } from 'zustand';
 import type { VizCategory, VizPlan, VizStatus, VizTrace } from '../viz/types';
 import { orchestrateVisualization } from '../viz/orchestrator';
 import { useWorkspace } from './workspaceStore';
 import { getLanguage } from '../lib/languages';
+import { djb2 } from '../lib/hash';
 
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 16;
@@ -23,6 +25,19 @@ interface VizState {
   error: string | null;
   cleanStdout: string;
   errorOutput: string;
+
+  // ── Phase 7 ── cursor binding ────────────────────────────────────────
+  /** When true, editor cursor ↔ viz step are kept in sync. */
+  followCode: boolean;
+  /** File the current trace was generated from. */
+  vizFileId: string | null;
+  /** Hash of the file content at visualize time (for stale detection). */
+  vizSourceHash: string | null;
+  /** True when the visualized file has been edited since visualize. */
+  staleSource: boolean;
+  /** Internal: sorted [line, step] pairs derived from trace.events. */
+  _lineIndex: Array<[number, number]>;
+
   /** Internal: current AbortController for in-flight orchestrator. */
   _abort: AbortController | null;
   /** Internal: setInterval handle for playback. */
@@ -39,6 +54,26 @@ interface VizState {
   seek(step: number): void;
   reset(): void;
   resetAll(): void;
+
+  // ── Phase 7 actions / queries ──
+  setFollowCode(b: boolean): void;
+  /** Mark the trace as stale (file was edited since visualize). */
+  markStale(): void;
+  /** Recompute staleSource flag against the live file content. */
+  refreshStale(content: string): void;
+  /**
+   * Map a 1-based source line to a step index (0..events.length).
+   * Returns the step *after* applying the last event whose line ≤ the
+   * given line. Returns 0 when no events lie on/before the line.
+   * Returns null when no trace is loaded or no events carry line tags.
+   */
+  stepFromLine(line: number): number | null;
+  /**
+   * Map a step index (0..events.length) to a source line.
+   * Returns the line of the most recent applied event with a line tag,
+   * or undefined for step 0 / events without tags.
+   */
+  lineForStep(step: number): number | undefined;
 }
 
 export const useViz = create<VizState>((set, get) => ({
@@ -51,6 +86,11 @@ export const useViz = create<VizState>((set, get) => ({
   error: null,
   cleanStdout: '',
   errorOutput: '',
+  followCode: true,
+  vizFileId: null,
+  vizSourceHash: null,
+  staleSource: false,
+  _lineIndex: [],
   _abort: null,
   _timer: null,
 
@@ -94,6 +134,12 @@ export const useViz = create<VizState>((set, get) => ({
       error: null,
       cleanStdout: '',
       errorOutput: '',
+      // Capture the file id + content hash at planning time so stale-source
+      // detection has a baseline. Reset stale flag on every fresh visualize.
+      vizFileId: id,
+      vizSourceHash: djb2(file.content),
+      staleSource: false,
+      _lineIndex: [],
       _abort: ac,
       _timer: null,
     });
@@ -127,6 +173,7 @@ export const useViz = create<VizState>((set, get) => ({
         currentStep: 0,
         cleanStdout: result.cleanStdout,
         errorOutput: result.errorOutput,
+        _lineIndex: buildLineIndex(result.trace),
         _abort: null,
       });
     } catch (err) {
@@ -209,9 +256,55 @@ export const useViz = create<VizState>((set, get) => ({
       error: null,
       cleanStdout: '',
       errorOutput: '',
+      vizFileId: null,
+      vizSourceHash: null,
+      staleSource: false,
+      _lineIndex: [],
       _abort: null,
       _timer: null,
     });
+  },
+
+  setFollowCode: (b) => set({ followCode: b }),
+
+  markStale: () => set({ staleSource: true }),
+
+  refreshStale: (content) => {
+    const { vizSourceHash, vizFileId } = get();
+    if (!vizFileId || vizSourceHash === null) return;
+    const cur = djb2(content);
+    set({ staleSource: cur !== vizSourceHash });
+  },
+
+  stepFromLine: (line) => {
+    const idx = get()._lineIndex;
+    if (idx.length === 0) return null;
+    // Binary search for the largest entry with entry[0] <= line.
+    let lo = 0;
+    let hi = idx.length - 1;
+    let best = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (idx[mid][0] <= line) {
+        best = mid;
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    if (best < 0) return 0; // cursor above first event line → initial state
+    return idx[best][1];
+  },
+
+  lineForStep: (step) => {
+    const trace = get().trace;
+    if (!trace || step <= 0) return undefined;
+    // Walk backwards from event[step-1] until we find one with a line tag.
+    for (let i = Math.min(step, trace.events.length) - 1; i >= 0; i--) {
+      const ln = trace.events[i].line;
+      if (typeof ln === 'number' && ln > 0) return ln;
+    }
+    return undefined;
   },
 }));
 
@@ -241,4 +334,28 @@ function startTimer(set: (partial: Partial<VizState>) => void, get: () => VizSta
     set({ currentStep: currentStep + 1 });
   }, intervalMs);
   set({ _timer: handle });
+}
+
+/**
+ * Build a sorted [line, step] index for binary-search cursor → step lookup.
+ * `step` is 1-based here (the step index AFTER applying that event), so
+ * step N means "state after events[0..N-1] have been applied".
+ *
+ * Coalesces repeated lines: keeps the LATEST step for each line so cursor
+ * landing on a loop body shows the most recent iteration's state.
+ */
+function buildLineIndex(trace: VizTrace): Array<[number, number]> {
+  const map = new Map<number, number>();
+  trace.events.forEach((ev, i) => {
+    const ln = ev.line;
+    if (typeof ln === 'number' && ln > 0) {
+      map.set(ln, i + 1); // step AFTER applying this event
+    }
+  });
+  return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
+}
+
+// Dev-only: expose the store on window for smoke tests / debugging.
+if (typeof window !== 'undefined' && import.meta.env?.DEV) {
+  (window as unknown as { __viz?: typeof useViz }).__viz = useViz;
 }

@@ -9,6 +9,8 @@ import {
   Loader2,
   AlertTriangle,
   X,
+  Link2,
+  Link2Off,
 } from 'lucide-react';
 import { useViz } from '../../store/vizStore';
 import { useWorkspace } from '../../store/workspaceStore';
@@ -25,6 +27,8 @@ export function RunVizPanel() {
   const speed = useViz(s => s.speed);
   const force = useViz(s => s.forceCategory);
   const error = useViz(s => s.error);
+  const followCode = useViz(s => s.followCode);
+  const staleSource = useViz(s => s.staleSource);
 
   const startVisualize = useViz(s => s.startVisualize);
   const cancel = useViz(s => s.cancel);
@@ -35,6 +39,7 @@ export function RunVizPanel() {
   const reset = useViz(s => s.reset);
   const setSpeed = useViz(s => s.setSpeed);
   const setForceCategory = useViz(s => s.setForceCategory);
+  const setFollowCode = useViz(s => s.setFollowCode);
 
   const activeId = useWorkspace(s => s.activeFileId);
   const hasFile = !!activeId;
@@ -89,6 +94,21 @@ export function RunVizPanel() {
           </button>
         )}
 
+        <button
+          className={'viz-btn' + (followCode ? ' active' : '')}
+          onClick={() => setFollowCode(!followCode)}
+          disabled={!hasTrace}
+          title={
+            !hasTrace
+              ? 'No trace loaded'
+              : followCode
+                ? 'Follow code is ON — moving the cursor seeks the visualization, and stepping moves the cursor.'
+                : 'Follow code is OFF — visualization plays without touching the editor cursor.'
+          }
+        >
+          {followCode ? <Link2 size={14} /> : <Link2Off size={14} />} Follow code
+        </button>
+
         <select
           className="viz-select"
           value={force ?? ''}
@@ -137,6 +157,22 @@ export function RunVizPanel() {
           </>
         )}
       </div>
+
+      {/* Stale-source banner */}
+      {staleSource && !busy && hasTrace && (
+        <div className="viz-stale-banner">
+          <AlertTriangle size={12} />
+          <span>Code modified since visualize — line mapping may be off.</span>
+          <button
+            className="viz-btn primary"
+            style={{ padding: '1px 8px', fontSize: '0.85em' }}
+            onClick={() => void startVisualize()}
+            title="Re-plan and re-run with the current source"
+          >
+            Re-Visualize
+          </button>
+        </div>
+      )}
 
       {/* Status row */}
       <div className="row viz-status">

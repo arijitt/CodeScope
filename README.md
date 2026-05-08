@@ -186,6 +186,35 @@ Limits:
 - All renderers are hand-rolled SVG; no extra runtime dependency.
 - The Visualize button is disabled until you have an open file.
 
+### Bidirectional cursor binding
+
+The visualization is wired to the editor cursor in both directions, so the
+animation never feels detached from the source code:
+
+- **Cursor → viz**: click anywhere in the editor (or use arrow keys) and
+  the visualization seeks to the state *after the last event with
+  `event.line ≤ cursor.line`*. Lines without events keep showing the
+  most recent state — scrubbing the cursor downward feels like a smooth
+  scrub through execution.
+- **Viz → cursor**: clicking ▶ or ⏭ moves the cursor to the line of the
+  current step and reveals it in the centre of the editor if it's off-
+  screen. The executing line gets a tinted background and a small marker
+  in the gutter.
+
+Use the **Follow code** toggle in the viz toolbar (link icon, ON by
+default) to disable both directions if you'd rather scrub the trace
+without your cursor jumping around.
+
+If you edit the file after visualizing, line numbers may drift out of
+sync. The pane shows a yellow **"Code modified — re-Visualize for
+accuracy"** banner with a one-click re-plan action; the existing mapping
+keeps working in the meantime (it's just approximate).
+
+Line tags are best-effort: the planner is asked to attach a `"line"` field
+to every probe pointing at the user's *original* source line. Older traces
+generated before this feature, or events the planner couldn't tag, simply
+no-op for the cursor binding without breaking the rest of the playback.
+
 ## Layout
 
 ```
