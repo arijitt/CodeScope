@@ -457,8 +457,12 @@ select.toolbar-font-select option {
 .viz-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .viz-btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 .viz-btn.primary:hover:not(:disabled) { filter: brightness(1.1); }
-.viz-btn.danger { color: var(--danger); border-color: var(--danger); }
-.viz-btn.danger:hover { background: var(--danger); color: white; }
+.viz-btn.danger {
+  background: var(--danger);
+  color: #ffffff;
+  border-color: var(--danger);
+}
+.viz-btn.danger:hover:not(:disabled) { filter: brightness(1.1); background: var(--danger); }
 /* Icon-only transport buttons stay square for a consistent feel. */
 .viz-btn.viz-btn-icon {
   width: 44px;
