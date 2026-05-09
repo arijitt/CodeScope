@@ -4,20 +4,22 @@ A browser-based IDE built with React + Vite + Monaco Editor. Supports 15 languag
 
 ## Demo
 
-[![CodeScope](./CodeScope-Thumbnail.png)](./CodeScope-Demo.mp4)
+[![CodeScope](./CodeScope-Thumbnail.png)](https://raw.githubusercontent.com/arijitt/CodeScope/main/CodeScope-Demo.mp4)
 
 <!--
-  GitHub renders <video> tags inline when the file is checked into the repo.
-  Click the thumbnail above (or the player below) to watch the walkthrough.
+  GitHub's blob viewer refuses to render mp4 files inline (returns
+  "Sorry about that, but we can't show files that are this big right now."
+  even for small files). Pointing the <video> tag at the
+  raw.githubusercontent.com CDN streams the bytes directly to the
+  browser's native player and avoids that error.
 -->
 
 <p align="center" width="100%">
-   <video src="./CodeScope-Demo.mp4" width="80%" controls></video>
+  <video src="https://raw.githubusercontent.com/arijitt/CodeScope/main/CodeScope-Demo.mp4" poster="./CodeScope-Thumbnail.png" width="80%" controls>
+    Your browser doesn't support inline video playback.
+    <a href="https://raw.githubusercontent.com/arijitt/CodeScope/main/CodeScope-Demo.mp4">Download the demo video</a>.
+  </video>
 </p>
-
-<!--video src="./CodeScope-Demo.mp4" controls width="800" poster="./CodeScope-Thumbnail.png">
-  Your browser doesn't support inline video playback. <a href="./CodeScope-Demo.mp4">Download the demo video</a>.
-</video-->
 
 ## Features
 
