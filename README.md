@@ -11,7 +11,9 @@ A browser-based IDE built with React + Vite + Monaco Editor. Supports 15 languag
   Click the thumbnail above (or the player below) to watch the walkthrough.
 -->
 
-[![Watch the video](./CodeScope-Thumbnail.png)](./CodeScope-Demo.mp4)
+<p align="center" width="100%">
+   <video src="./CodeScope-Demo.mp4" width="80%" controls></video>
+</p>
 
 <!--video src="./CodeScope-Demo.mp4" controls width="800" poster="./CodeScope-Thumbnail.png">
   Your browser doesn't support inline video playback. <a href="./CodeScope-Demo.mp4">Download the demo video</a>.
