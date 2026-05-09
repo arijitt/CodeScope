@@ -4,38 +4,7 @@ A browser-based IDE built with React + Vite + Monaco Editor. Supports 15 languag
 
 ## Demo
 
-[![CodeScope — click to download the demo video](./CodeScope-Thumbnail.png)](https://github.com/arijitt/CodeScope/raw/main/CodeScope-Demo.mp4)
-
-▶ **[Watch the demo (CodeScope-Demo.mp4)](https://github.com/arijitt/CodeScope/raw/main/CodeScope-Demo.mp4)**
-
-<!--
-  Why no inline <video> player here?
-
-  GitHub serves files committed to the repo (raw.githubusercontent.com) with
-    Content-Type: application/octet-stream
-    X-Content-Type-Options: nosniff
-    Content-Security-Policy: default-src 'none'; sandbox
-  By design — to discourage hot-linking. The <video> element refuses to play
-  bytes served as application/octet-stream, so any <video src="…raw…mp4">
-  tag in this README will never play inline; the file always downloads.
-
-  To get true inline playback in the README, upload the mp4 to one of the
-  GitHub CDNs that *does* serve `Content-Type: video/mp4`:
-
-    1. **GitHub user-attachments** (easiest) — open any issue or PR on this
-       repo, drag-and-drop CodeScope-Demo.mp4 into the comment editor.
-       GitHub uploads it and inserts a URL like
-         https://github.com/user-attachments/assets/<uuid>
-       Copy that URL and replace the link/<video src> below with it. A
-       <video src="https://github.com/user-attachments/assets/<uuid>" controls></video>
-       block here will play inline on github.com.
-
-    2. **GitHub Release asset** — `gh release create v0.1 CodeScope-Demo.mp4`
-       then point at
-         https://github.com/arijitt/CodeScope/releases/download/v0.1/CodeScope-Demo.mp4
-       Release-asset URLs are served with Content-Type: video/mp4 and play
-       inline in <video> tags.
--->
+https://github.com/user-attachments/assets/4f6c4a64-d02b-46f4-a0a6-ab6aa867e38c
 
 ## Features
 
