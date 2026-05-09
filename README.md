@@ -6,7 +6,11 @@ A browser-based IDE built with React + Vite + Monaco Editor. Supports 15 languag
 
 [![CodeScope — click to download the demo video](./CodeScope-Thumbnail.png)](https://github.com/arijitt/CodeScope/raw/main/CodeScope-Demo.mp4)
 
-▶ **[Watch the demo (CodeScope-Demo.mp4)](https://github.com/arijitt/CodeScope/raw/main/CodeScope-Demo.mp4)**
+
+
+https://github.com/user-attachments/assets/4f6c4a64-d02b-46f4-a0a6-ab6aa867e38c
+
+
 
 <!--
   Why no inline <video> player here?
