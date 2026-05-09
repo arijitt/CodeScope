@@ -9,6 +9,7 @@ import { useAI, selectProvider } from '../../store/aiStore';
 import { useWorkspace } from '../../store/workspaceStore';
 import { useAuth } from '../../lib/auth';
 import { getLanguage } from '../../lib/languages';
+import { useComposerResize } from './useComposerResize';
 
 export function ChatTab() {
   const messages = useAI((s) => s.messages);
@@ -26,6 +27,7 @@ export function ChatTab() {
 
   const [input, setInput] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
+  const composer = useComposerResize('codescope.chat.composerHeight', 72);
 
   useEffect(() => {
     if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -87,13 +89,23 @@ export function ChatTab() {
       </div>
 
       <div
+        className="composer-resizer"
+        role="separator"
+        aria-orientation="horizontal"
+        title="Drag to resize · Double-click to reset"
+        onPointerDown={composer.onPointerDown}
+        onDoubleClick={composer.reset}
+      />
+      <div
         style={{
           borderTop: '1px solid var(--border)',
           padding: 6,
           display: 'flex',
           gap: 6,
-          alignItems: 'flex-end',
+          alignItems: 'stretch',
           background: 'var(--bg-alt)',
+          height: composer.height,
+          flexShrink: 0,
         }}
       >
         <textarea
@@ -102,7 +114,6 @@ export function ChatTab() {
           onKeyDown={onKeyDown}
           placeholder={provider !== 'none' ? 'Ask… (Enter to send, Shift+Enter for newline)' : 'Sign in or set API key'}
           disabled={provider === 'none' || isSending}
-          rows={2}
           style={{
             flex: 1,
             resize: 'none',
@@ -114,6 +125,7 @@ export function ChatTab() {
             borderRadius: 4,
             padding: '6px 8px',
             minHeight: 0,
+            height: '100%',
           }}
         />
         <button

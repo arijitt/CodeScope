@@ -10,6 +10,7 @@ import { selectProvider } from '../../store/aiStore';
 import { useAuth } from '../../lib/auth';
 import { plan } from '../../agent/planner';
 import { orchestrate } from '../../agent/orchestrator';
+import { useComposerResize } from './useComposerResize';
 
 export function AgentTab() {
   const status = useAgent((s) => s.status);
@@ -33,6 +34,7 @@ export function AgentTab() {
   void signedIn;
 
   const [request, setRequest] = useState('');
+  const composer = useComposerResize('codescope.agent.composerHeight', 72);
 
   const isRunning = status === 'planning' || status === 'executing';
   const canRun = provider !== 'none' && !isRunning && request.trim().length > 0;
@@ -132,7 +134,15 @@ export function AgentTab() {
       </div>
 
       {/* Composer */}
-      <div style={{ borderTop: '1px solid var(--border)', padding: 6, display: 'flex', gap: 6, alignItems: 'flex-end', background: 'var(--bg-alt)' }}>
+      <div
+        className="composer-resizer"
+        role="separator"
+        aria-orientation="horizontal"
+        title="Drag to resize · Double-click to reset"
+        onPointerDown={composer.onPointerDown}
+        onDoubleClick={composer.reset}
+      />
+      <div style={{ borderTop: '1px solid var(--border)', padding: 6, display: 'flex', gap: 6, alignItems: 'stretch', background: 'var(--bg-alt)', height: composer.height, flexShrink: 0 }}>
         <textarea
           value={request}
           onChange={(e) => setRequest(e.target.value)}
@@ -144,7 +154,6 @@ export function AgentTab() {
           }}
           placeholder={provider !== 'none' ? 'Describe a multi-file change… (Ctrl+Enter to run)' : 'Sign in or set API key'}
           disabled={provider === 'none' || isRunning}
-          rows={2}
           style={{
             flex: 1,
             resize: 'none',
@@ -156,6 +165,7 @@ export function AgentTab() {
             borderRadius: 4,
             padding: '6px 8px',
             minHeight: 0,
+            height: '100%',
           }}
         />
         {isRunning ? (

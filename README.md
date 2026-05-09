@@ -1,4 +1,4 @@
-# Web IDE
+# CodeScope
 
 A browser-based IDE built with React + Vite + Monaco Editor. Supports 15 languages with syntax highlighting and remote code execution via the [Piston](https://github.com/engineer-man/piston) public API.
 

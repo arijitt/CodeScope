@@ -133,6 +133,17 @@ select, input {
 .output-resizer:hover, .output-resizer:active,
 .right-split-resizer:hover, .right-split-resizer:active { background: var(--accent); }
 
+/* Drag handle at the top of the Chat/Agent composer. Same look-and-feel
+   as the other horizontal resizers, just narrower. */
+.composer-resizer {
+  height: 5px;
+  background: var(--border);
+  cursor: row-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.composer-resizer:hover, .composer-resizer:active { background: var(--accent); }
+
 /* Bigger Judge0-style toolbar controls */
 .toolbar-control {
   font-size: 15px;
